@@ -1,15 +1,21 @@
-// app.js
 import cors from "cors";
 import multer from "multer";
 import bodyParser from "body-parser";
 import dotenv from "dotenv";
 import fetch from "node-fetch";
+// import db from "./scripts/firebase.js";
+import { saveContact, db } from "./scripts/firebase.js";
 
 dotenv.config();
 
 const multerMiddleware = multer().none();
 
 export function appMiddleware(app) {
+  app.get("/", (req, res) => {
+    console.log(db);
+    res.send("Hello from Express!");
+  });
+
   app.use(cors());
   app.use(bodyParser.json());
   app.use(bodyParser.urlencoded({ extended: true }));
