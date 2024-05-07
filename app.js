@@ -1,56 +1,30 @@
 import cors from "cors";
 import multer from "multer";
 import bodyParser from "body-parser";
-import dotenv from "dotenv";
-import fetch from "node-fetch";
-// import db from "./scripts/firebase.js";
-import { saveContact, db } from "./scripts/firebase.js";
-
-dotenv.config();
+import { saveContact } from "./scripts/firebase.js";
+import { verifyRecaptcha } from "./scripts/recaptcha.js";
 
 const multerMiddleware = multer().none();
 
 export function appMiddleware(app) {
-  app.get("/", (req, res) => {
-    console.log(db);
-    res.send("Hello from Express!");
-  });
-
   app.use(cors());
   app.use(bodyParser.json());
   app.use(bodyParser.urlencoded({ extended: true }));
 
   app.post("/submit-form", multerMiddleware, async (req, res) => {
-    const token = req.body.recaptcha_response;
-    const { name, email, message } = req.body;
-    console.log(name, email, message);
-
-    const recaptchaData = await verifyRecaptcha(token);
-
-    if (recaptchaData.success && recaptchaData.score > 0.5) {
-      res.json({ message: "Success, form processed" });
-    } else {
-      res.status(403).json({ message: "Failed reCAPTCHA verification" });
-    }
-  });
-
-  async function verifyRecaptcha(token) {
-    const secretKey = process.env.SECRET_KEY;
-    const url = "https://www.google.com/recaptcha/api/siteverify";
+    const { recaptcha_response, name, email, message } = req.body;
 
     try {
-      const response = await fetch(url, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/x-www-form-urlencoded",
-        },
-        body: `secret=${secretKey}&response=${token}`,
-      });
-      const data = await response.json();
-      return data;
+      const recaptchaData = await verifyRecaptcha(recaptcha_response);
+      if (recaptchaData.success && recaptchaData.score > 0.5) {
+        const saveResult = await saveContact({ name, email, message });
+        res.json({ message: "Contact saved successfully", id: saveResult.id });
+      } else {
+        res.status(403).json({ message: "Failed reCAPTCHA verification" });
+      }
     } catch (error) {
-      console.error("Failed to verify reCAPTCHA:", error);
-      return { success: false };
+      console.log(`Server error: ${error}`);
+      res.status(500).json({ message: "Internal Server Error" });
     }
-  }
+  });
 }
