@@ -13,7 +13,7 @@ admin.initializeApp({
 
 const db = admin.firestore();
 
-const saveContact = async (contact) => {
+const saveForm = async (contact) => {
   try {
     const { name, email, message } = contact;
     const docRef = await db.collection("contacts").add({
@@ -29,4 +29,4 @@ const saveContact = async (contact) => {
   }
 };
 
-export { saveContact };
+export { saveForm };
