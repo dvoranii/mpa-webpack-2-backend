@@ -1,9 +1,12 @@
 // server.js
 import express from "express";
+import compression from "compression";
 import { appMiddleware } from "./app.js";
 
 const app = express();
 const PORT = process.env.PORT || 4444;
+
+app.use(compression());
 
 appMiddleware(app);
 
