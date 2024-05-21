@@ -33,20 +33,28 @@ export function appMiddleware(app) {
     }
   });
 
-  app.post("/submit-form", multerMiddleware, async (req, res) => {
-    const { recaptcha_response, name, email, message } = req.body;
+  app.post(
+    "/submit-form",
+    multerMiddleware,
+    csrfProtection,
+    async (req, res) => {
+      const { recaptcha_response, name, email, message } = req.body;
 
-    try {
-      const recaptchaData = await verifyRecaptcha(recaptcha_response);
-      if (recaptchaData.success && recaptchaData.score > 0.5) {
-        const saveResult = await saveForm({ name, email, message });
-        res.json({ message: "Contact saved successfully", id: saveResult.id });
-      } else {
-        res.status(403).json({ message: "Failed reCAPTCHA verification" });
+      try {
+        const recaptchaData = await verifyRecaptcha(recaptcha_response);
+        if (recaptchaData.success && recaptchaData.score > 0.5) {
+          const saveResult = await saveForm({ name, email, message });
+          res.json({
+            message: "Contact saved successfully",
+            id: saveResult.id,
+          });
+        } else {
+          res.status(403).json({ message: "Failed reCAPTCHA verification" });
+        }
+      } catch (error) {
+        console.log(`Server error: ${error}`);
+        res.status(500).json({ message: "Internal Server Error" });
       }
-    } catch (error) {
-      console.log(`Server error: ${error}`);
-      res.status(500).json({ message: "Internal Server Error" });
     }
-  });
+  );
 }
