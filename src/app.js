@@ -6,9 +6,14 @@ import { verifyRecaptcha } from "./scripts/recaptcha.js";
 import csurf from "csurf";
 import cookieParser from "cookie-parser";
 import { ipWhitelistMiddleware } from "./scripts/admin.js";
+import { fileURLToPath } from "url";
+import path from "path";
 
 const multerMiddleware = multer().none();
 const csrfProtection = csurf({ cookie: true });
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 export function appMiddleware(app) {
   app.use(
@@ -59,6 +64,6 @@ export function appMiddleware(app) {
   );
 
   app.use("/admin", ipWhitelistMiddleware, (req, res) => {
-    res.send("Admin Page");
+    res.sendFile(path.resolve(__dirname, "views", "admin.html")); // Serve the admin HTML file
   });
 }
