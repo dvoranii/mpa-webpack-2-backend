@@ -5,21 +5,10 @@ import { saveForm } from "./scripts/firebase.js";
 import { verifyRecaptcha } from "./scripts/recaptcha.js";
 import csurf from "csurf";
 import cookieParser from "cookie-parser";
+import { ipWhitelistMiddleware } from "./scripts/admin.js";
 
 const multerMiddleware = multer().none();
 const csrfProtection = csurf({ cookie: true });
-
-const IP_WHITELIST = process.env.IP_WHITELIST.split(","); // Replace with your IP address
-
-const ipWhitelistMiddleware = (req, res, next) => {
-  const clientIp = req.ip;
-  console.log(clientIp);
-  if (IP_WHITELIST.includes(clientIp)) {
-    next();
-  } else {
-    res.status(403).send("Forbidden");
-  }
-};
 
 export function appMiddleware(app) {
   app.use(
