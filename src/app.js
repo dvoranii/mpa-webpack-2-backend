@@ -9,11 +9,11 @@ import { ipWhitelistMiddleware } from "./scripts/admin.js";
 import { fileURLToPath } from "url";
 import path from "path";
 
-const multerMiddleware = multer().none();
-const csrfProtection = csurf({ cookie: true });
-
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
+
+const multerMiddleware = multer().none();
+const csrfProtection = csurf({ cookie: true });
 
 export function appMiddleware(app) {
   app.use(
@@ -64,6 +64,6 @@ export function appMiddleware(app) {
   );
 
   app.use("/admin", ipWhitelistMiddleware, (req, res) => {
-    res.sendFile(path.resolve(__dirname, "views", "admin.html")); // Serve the admin HTML file
+    res.sendFile(path.resolve(__dirname, "views", "admin.html"));
   });
 }
