@@ -5,7 +5,7 @@ import { saveForm } from "./scripts/firebase.js";
 import { verifyRecaptcha } from "./scripts/recaptcha.js";
 import csurf from "csurf";
 import cookieParser from "cookie-parser";
-import { ipWhitelistMiddleware } from "./scripts/admin.js";
+// import { ipWhitelistMiddleware } from "./scripts/ipWhiteList.js";
 import { fileURLToPath } from "url";
 import path from "path";
 
@@ -63,7 +63,7 @@ export function appMiddleware(app) {
     }
   );
 
-  app.use("/admin", ipWhitelistMiddleware, (req, res) => {
+  app.use("/admin", (req, res) => {
     res.sendFile(path.resolve(__dirname, "views", "admin.html"));
   });
 }
