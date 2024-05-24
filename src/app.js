@@ -5,7 +5,6 @@ import { saveForm } from "./scripts/firebase.js";
 import { verifyRecaptcha } from "./scripts/recaptcha.js";
 import csurf from "csurf";
 import cookieParser from "cookie-parser";
-// import { ipWhitelistMiddleware } from "./scripts/ipWhiteList.js";
 import { fileURLToPath } from "url";
 import path from "path";
 
