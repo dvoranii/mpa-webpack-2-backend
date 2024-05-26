@@ -1,7 +1,7 @@
 import cors from "cors";
 import multer from "multer";
 import bodyParser from "body-parser";
-import { saveForm } from "./scripts/firebase.js";
+import { saveContactForm, saveSubscriptionForm } from "./scripts/firebase.js";
 import { verifyRecaptcha } from "./scripts/recaptcha.js";
 import csurf from "csurf";
 import cookieParser from "cookie-parser";
@@ -26,6 +26,10 @@ export function appMiddleware(app) {
   app.use(bodyParser.json());
   app.use(bodyParser.urlencoded({ extended: true }));
 
+  app.use("/admin", (req, res) => {
+    res.sendFile(path.resolve(__dirname, "views", "admin.html"));
+  });
+
   app.get("/csrf-token", csrfProtection, (req, res) => {
     try {
       const token = req.csrfToken();
@@ -47,7 +51,7 @@ export function appMiddleware(app) {
       try {
         const recaptchaData = await verifyRecaptcha(recaptcha_response);
         if (recaptchaData.success && recaptchaData.score > 0.5) {
-          const saveResult = await saveForm({ name, email, message });
+          const saveResult = await saveContactForm({ name, email, message });
           res.json({
             message: "Contact saved successfully",
             id: saveResult.id,
@@ -62,7 +66,18 @@ export function appMiddleware(app) {
     }
   );
 
-  app.use("/admin", (req, res) => {
-    res.sendFile(path.resolve(__dirname, "views", "admin.html"));
+  app.post("/subscribe", multerMiddleware, csrfProtection, async (req, res) => {
+    const { name, email } = req.body;
+
+    try {
+      const saveResult = await saveSubscriptionForm({ name, email });
+      res.json({
+        message: "Subscription saved successfully",
+        id: saveResult.id,
+      });
+    } catch (error) {
+      console.log(`Server error: ${error}`);
+      res.status(500).json({ message: "Internal Server Error" });
+    }
   });
 }

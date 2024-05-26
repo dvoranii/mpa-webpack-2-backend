@@ -13,7 +13,7 @@ admin.initializeApp({
 
 const db = admin.firestore();
 
-const saveForm = async (contact) => {
+const saveContactForm = async (contact) => {
   try {
     const { name, email, message } = contact;
     const docRef = await db.collection("contacts").add({
@@ -29,4 +29,19 @@ const saveForm = async (contact) => {
   }
 };
 
-export { saveForm };
+const saveSubscriptionForm = async (subscription) => {
+  try {
+    const { name, email } = subscription;
+    const docRef = await db.collection("subscriptions").add({
+      name,
+      email,
+      createdAt: admin.firestore.FieldValue.serverTimestamp(),
+    });
+    return { id: docRef.id, message: "Subscription saved successfully" };
+  } catch (error) {
+    console.error("Error adding subscription:", error);
+    throw new Error("Internal Server Error");
+  }
+};
+
+export { saveContactForm, saveSubscriptionForm };
