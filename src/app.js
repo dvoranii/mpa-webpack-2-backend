@@ -7,6 +7,10 @@ import csurf from "csurf";
 import cookieParser from "cookie-parser";
 import { fileURLToPath } from "url";
 import path from "path";
+import dotenv from "dotenv";
+import { sendEmail } from "./scripts/sendEmail.js";
+
+dotenv.config();
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -68,9 +72,15 @@ export function appMiddleware(app) {
 
   app.post("/subscribe", multerMiddleware, csrfProtection, async (req, res) => {
     const { name, email } = req.body;
-
     try {
       const saveResult = await saveSubscriptionForm({ name, email });
+
+      await sendEmail(
+        email,
+        "Subscription Confirmation",
+        `Hello ${name}, \n\nThank you for subscribing to our newsletter! `
+      );
+
       res.json({
         message: "Subscription saved successfully",
         id: saveResult.id,
