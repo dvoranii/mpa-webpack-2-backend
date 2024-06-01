@@ -50,20 +50,19 @@ export function appMiddleware(app) {
     multerMiddleware,
     csrfProtection,
     async (req, res) => {
-      const { recaptcha_response, name, email, message } = req.body;
+      const { recaptchaResponse, name, email, message } = req.body;
 
       try {
-        const recaptchaData = await verifyRecaptcha(recaptcha_response);
-        console.log(recaptchaData);
-        // if (recaptchaData.success && recaptchaData.score > 0.5) {
-        const saveResult = await saveContactForm({ name, email, message });
-        res.json({
-          message: "Contact saved successfully",
-          id: saveResult.id,
-        });
-        // } else {
-        //   res.status(403).json({ message: "Failed reCAPTCHA verification" });
-        // }
+        const recaptchaData = await verifyRecaptcha(recaptchaResponse);
+        if (recaptchaData.success && recaptchaData.score > 0.5) {
+          const saveResult = await saveContactForm({ name, email, message });
+          res.json({
+            message: "Contact saved successfully",
+            id: saveResult.id,
+          });
+        } else {
+          res.status(403).json({ message: "Failed reCAPTCHA verification" });
+        }
       } catch (error) {
         console.log(`Server error: ${error}`);
         res.status(500).json({ message: "Internal Server Error" });
@@ -72,20 +71,26 @@ export function appMiddleware(app) {
   );
 
   app.post("/subscribe", multerMiddleware, csrfProtection, async (req, res) => {
-    const { name, email } = req.body;
+    const { recaptchaResponse, name, email } = req.body;
+    console.log(recaptchaResponse);
     try {
-      const saveResult = await saveSubscriptionForm({ name, email });
+      const recaptchaData = await verifyRecaptcha(recaptchaResponse);
+      if (recaptchaData.success && recaptchaData.score > 0.5) {
+        const saveResult = await saveSubscriptionForm({ name, email });
 
-      await sendSubscriptionEmail(
-        email,
-        "Subscription Confirmation",
-        `Hello ${name}, \n\nThank you for subscribing to our newsletter! `
-      );
+        await sendSubscriptionEmail(
+          email,
+          "Subscription Confirmation",
+          `Hello ${name}, \n\nThank you for subscribing to our newsletter!`
+        );
 
-      res.json({
-        message: "Subscription saved successfully",
-        id: saveResult.id,
-      });
+        res.json({
+          message: "Subscription saved successfully",
+          id: saveResult.id,
+        });
+      } else {
+        res.status(403).json({ message: "Failed reCAPTCHA verification" });
+      }
     } catch (error) {
       console.log(`Server error: ${error}`);
       res.status(500).json({ message: "Internal Server Error" });
