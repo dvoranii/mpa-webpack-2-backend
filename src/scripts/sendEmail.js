@@ -12,7 +12,7 @@ oauth2Client.setCredentials({
   refresh_token: process.env.REFRESH_TOKEN,
 });
 
-export async function sendEmail(to, subject, text) {
+export async function sendSubscriptionEmail(to, subject, text) {
   try {
     const accessToken = await oauth2Client.getAccessToken();
 
@@ -26,6 +26,7 @@ export async function sendEmail(to, subject, text) {
         refreshToken: process.env.REFRESH_TOKEN,
         accessToken: accessToken.token,
       },
+      //   testing purposes only
       tls: {
         rejectUnauthorized: false,
       },

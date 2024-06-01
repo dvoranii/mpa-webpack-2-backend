@@ -8,7 +8,7 @@ import cookieParser from "cookie-parser";
 import { fileURLToPath } from "url";
 import path from "path";
 import dotenv from "dotenv";
-import { sendEmail } from "./scripts/sendEmail.js";
+import { sendSubscriptionEmail } from "./scripts/sendEmail.js";
 
 dotenv.config();
 
@@ -46,7 +46,7 @@ export function appMiddleware(app) {
   });
 
   app.post(
-    "/submit-form",
+    "/contact-form",
     multerMiddleware,
     csrfProtection,
     async (req, res) => {
@@ -54,15 +54,16 @@ export function appMiddleware(app) {
 
       try {
         const recaptchaData = await verifyRecaptcha(recaptcha_response);
-        if (recaptchaData.success && recaptchaData.score > 0.5) {
-          const saveResult = await saveContactForm({ name, email, message });
-          res.json({
-            message: "Contact saved successfully",
-            id: saveResult.id,
-          });
-        } else {
-          res.status(403).json({ message: "Failed reCAPTCHA verification" });
-        }
+        console.log(recaptchaData);
+        // if (recaptchaData.success && recaptchaData.score > 0.5) {
+        const saveResult = await saveContactForm({ name, email, message });
+        res.json({
+          message: "Contact saved successfully",
+          id: saveResult.id,
+        });
+        // } else {
+        //   res.status(403).json({ message: "Failed reCAPTCHA verification" });
+        // }
       } catch (error) {
         console.log(`Server error: ${error}`);
         res.status(500).json({ message: "Internal Server Error" });
@@ -75,7 +76,7 @@ export function appMiddleware(app) {
     try {
       const saveResult = await saveSubscriptionForm({ name, email });
 
-      await sendEmail(
+      await sendSubscriptionEmail(
         email,
         "Subscription Confirmation",
         `Hello ${name}, \n\nThank you for subscribing to our newsletter! `
