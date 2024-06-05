@@ -126,8 +126,6 @@ export function appMiddleware(app) {
         additionalInfo,
         ...dynamicFields
       } = req.body;
-      console.log(req.body);
-
       try {
         const recaptchaData = await verifyRecaptcha(recaptchaResponse);
         if (recaptchaData.success && recaptchaData.score > 0.5) {
