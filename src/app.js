@@ -51,6 +51,7 @@ export function appMiddleware(app) {
     csrfProtection,
     async (req, res) => {
       const { recaptchaResponse, name, email, message } = req.body;
+      console.log(req.body);
 
       try {
         const recaptchaData = await verifyRecaptcha(recaptchaResponse);
@@ -72,7 +73,6 @@ export function appMiddleware(app) {
 
   app.post("/subscribe", multerMiddleware, csrfProtection, async (req, res) => {
     const { recaptchaResponse, name, email } = req.body;
-    console.log(recaptchaResponse);
     try {
       const recaptchaData = await verifyRecaptcha(recaptchaResponse);
       if (recaptchaData.success && recaptchaData.score > 0.5) {
@@ -96,4 +96,40 @@ export function appMiddleware(app) {
       res.status(500).json({ message: "Internal Server Error" });
     }
   });
+
+  // good to keep going
+  app.post(
+    "/quote-form",
+    multerMiddleware,
+    csrfProtection,
+    async (req, res) => {
+      const {
+        name,
+        email,
+        company,
+        phone,
+        pickupAddress,
+        shippingAddress,
+        skids,
+        pieces,
+        service,
+        weight,
+        units,
+        HSCode,
+        hazardous,
+        recaptchaResponse,
+      } = req.body;
+      console.log(req.body);
+
+      try {
+        const recaptchaData = await verifyRecaptcha(recaptchaResponse);
+        if (recaptchaData.success && recaptchaData.score > 0.5) {
+          console.log("Recaptcha verified successfully");
+        }
+      } catch (error) {
+        console.error(`Server error: ${error}`);
+        res.status(500).json({ message: "Internal Server Error" });
+      }
+    }
+  );
 }
