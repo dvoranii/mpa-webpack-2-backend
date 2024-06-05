@@ -1,7 +1,11 @@
 import cors from "cors";
 import multer from "multer";
 import bodyParser from "body-parser";
-import { saveContactForm, saveSubscriptionForm } from "./scripts/firebase.js";
+import {
+  saveContactForm,
+  saveSubscriptionForm,
+  saveQuoteForm,
+} from "./scripts/firebase.js";
 import { verifyRecaptcha } from "./scripts/recaptcha.js";
 import csurf from "csurf";
 import cookieParser from "cookie-parser";
@@ -117,7 +121,10 @@ export function appMiddleware(app) {
         units,
         HSCode,
         hazardous,
+        nonPersonal,
         recaptchaResponse,
+        additionalInfo,
+        ...dynamicFields
       } = req.body;
       console.log(req.body);
 
@@ -125,6 +132,51 @@ export function appMiddleware(app) {
         const recaptchaData = await verifyRecaptcha(recaptchaResponse);
         if (recaptchaData.success && recaptchaData.score > 0.5) {
           console.log("Recaptcha verified successfully");
+          const formData = {
+            companyInformation: {
+              name,
+              email,
+              company,
+              phone,
+            },
+            pickupInformation: {
+              pickupAddress,
+            },
+            shippingInformation: {
+              shippingAddress,
+            },
+            shipmentDetails: {
+              skids,
+              pieces,
+              service,
+              weight,
+              units,
+              HSCode,
+              hazardous,
+              nonPersonal,
+              skidsData: [],
+            },
+            additionalInfo,
+          };
+
+          // Add dynamic fields to skidsData
+          for (let i = 0; i < parseInt(skids, 10); i++) {
+            formData.shipmentDetails.skidsData.push({
+              type: dynamicFields[`type-${i}`],
+              length: dynamicFields[`length-${i}`],
+              width: dynamicFields[`width-${i}`],
+              height: dynamicFields[`height-${i}`],
+            });
+          }
+
+          const saveResult = await saveQuoteForm(formData);
+
+          res.json({
+            message: "Quote saved successfully",
+            id: saveResult.id,
+          });
+        } else {
+          res.status(403).json({ message: "Failed reCAPTCHA verification" });
         }
       } catch (error) {
         console.error(`Server error: ${error}`);

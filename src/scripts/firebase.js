@@ -44,4 +44,17 @@ const saveSubscriptionForm = async (subscription) => {
   }
 };
 
-export { saveContactForm, saveSubscriptionForm };
+const saveQuoteForm = async (quote) => {
+  try {
+    const docRef = await db.collection("quotes").add({
+      ...quote,
+      createdAt: admin.firestore.FieldValue.serverTimestamp(),
+    });
+    return { id: docRef.id, message: "Quote form saved successfully" };
+  } catch (error) {
+    console.error("Error adding quote:", error);
+    throw new Error("Internal Server Error");
+  }
+};
+
+export { saveContactForm, saveSubscriptionForm, saveQuoteForm };
