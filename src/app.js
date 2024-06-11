@@ -101,7 +101,6 @@ export function appMiddleware(app) {
     }
   });
 
-  // good to keep going
   app.post(
     "/quote-form",
     multerMiddleware,
@@ -157,7 +156,6 @@ export function appMiddleware(app) {
             additionalInfo,
           };
 
-          // Add dynamic fields to skidsData
           for (let i = 0; i < parseInt(skids, 10); i++) {
             formData.shipmentDetails.skidsData.push({
               type: dynamicFields[`type-${i}`],

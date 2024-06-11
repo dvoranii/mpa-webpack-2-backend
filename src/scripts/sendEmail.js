@@ -1,48 +1,71 @@
 import nodemailer from "nodemailer";
 import { google } from "googleapis";
 
+// Validate required environment variables
+const {
+  CLIENT_ID,
+  CLIENT_SECRET,
+  REFRESH_TOKEN,
+  EMAIL_USER,
+  OAUTH_PLAYGROUND,
+} = process.env;
+
+if (!CLIENT_ID || !CLIENT_SECRET || !REFRESH_TOKEN || !EMAIL_USER) {
+  throw new Error("Missing required environment variables");
+}
+
 const OAuth2 = google.auth.OAuth2;
-const oauth2Client = new OAuth2(
-  process.env.CLIENT_ID,
-  process.env.CLIENT_SECRET,
-  "https://developers.google.com/oauthplayground"
-);
 
-oauth2Client.setCredentials({
-  refresh_token: process.env.REFRESH_TOKEN,
-});
+class Mailer {
+  constructor() {
+    this.oauth2Client = new OAuth2(
+      CLIENT_ID,
+      CLIENT_SECRET,
+      OAUTH_PLAYGROUND || "https://developers.google.com/oauthplayground"
+    );
+    this.oauth2Client.setCredentials({ refresh_token: REFRESH_TOKEN });
+  }
 
-export async function sendSubscriptionEmail(to, subject, text) {
-  try {
-    const accessToken = await oauth2Client.getAccessToken();
-
-    const transporter = nodemailer.createTransport({
+  async createTransporter() {
+    const accessToken = await this.oauth2Client.getAccessToken();
+    return nodemailer.createTransport({
       service: "gmail",
       auth: {
         type: "OAuth2",
-        user: "ildidvorani@gmail.com",
-        clientId: process.env.CLIENT_ID,
-        clientSecret: process.env.CLIENT_SECRET,
-        refreshToken: process.env.REFRESH_TOKEN,
+        user: EMAIL_USER,
+        clientId: CLIENT_ID,
+        clientSecret: CLIENT_SECRET,
+        refreshToken: REFRESH_TOKEN,
         accessToken: accessToken.token,
       },
-      //   testing purposes only
+      // For testing purposes only; ensure this is removed or set properly in production
       tls: {
         rejectUnauthorized: false,
       },
     });
-
-    const mailOptions = {
-      from: "ildidvorani@gmail.com",
-      to: to,
-      subject: subject,
-      text: text,
-    };
-
-    const result = await transporter.sendMail(mailOptions);
-    return result;
-  } catch (error) {
-    console.error("Error sending email:", error);
-    throw new Error("Error sending email");
   }
+
+  async sendMail(to, subject, text) {
+    try {
+      const transporter = await this.createTransporter();
+      const mailOptions = {
+        from: EMAIL_USER,
+        to,
+        subject,
+        text,
+      };
+      const result = await transporter.sendMail(mailOptions);
+      console.log("Email sent:", result);
+      return result;
+    } catch (error) {
+      console.error("Error sending email:", error);
+      throw new Error("Error sending email");
+    }
+  }
+}
+
+const mailer = new Mailer();
+
+export async function sendSubscriptionEmail(to, subject, text) {
+  return mailer.sendMail(to, subject, text);
 }
