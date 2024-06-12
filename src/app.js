@@ -14,6 +14,12 @@ import path from "path";
 import dotenv from "dotenv";
 import { sendSubscriptionEmail } from "./scripts/sendEmail.js";
 
+import {
+  contactFormLimiter,
+  subscriptionFormLimiter,
+  quoteFormLimiter,
+} from "./scripts/rateLimiter.js";
+
 dotenv.config();
 
 const __filename = fileURLToPath(import.meta.url);
@@ -53,6 +59,7 @@ export function appMiddleware(app) {
     "/contact-form",
     multerMiddleware,
     csrfProtection,
+    contactFormLimiter,
     async (req, res) => {
       const { recaptchaResponse, name, email, message } = req.body;
       console.log(req.body);
@@ -75,36 +82,43 @@ export function appMiddleware(app) {
     }
   );
 
-  app.post("/subscribe", multerMiddleware, csrfProtection, async (req, res) => {
-    const { recaptchaResponse, name, email } = req.body;
-    try {
-      const recaptchaData = await verifyRecaptcha(recaptchaResponse);
-      if (recaptchaData.success && recaptchaData.score > 0.5) {
-        const saveResult = await saveSubscriptionForm({ name, email });
+  app.post(
+    "/subscribe",
+    multerMiddleware,
+    csrfProtection,
+    subscriptionFormLimiter,
+    async (req, res) => {
+      const { recaptchaResponse, name, email } = req.body;
+      try {
+        const recaptchaData = await verifyRecaptcha(recaptchaResponse);
+        if (recaptchaData.success && recaptchaData.score > 0.5) {
+          const saveResult = await saveSubscriptionForm({ name, email });
 
-        await sendSubscriptionEmail(
-          email,
-          "Subscription Confirmation",
-          `Hello ${name}, \n\nThank you for subscribing to our newsletter!`
-        );
+          await sendSubscriptionEmail(
+            email,
+            "Subscription Confirmation",
+            `Hello ${name}, \n\nThank you for subscribing to our newsletter!`
+          );
 
-        res.json({
-          message: "Subscription saved successfully",
-          id: saveResult.id,
-        });
-      } else {
-        res.status(403).json({ message: "Failed reCAPTCHA verification" });
+          res.json({
+            message: "Subscription saved successfully",
+            id: saveResult.id,
+          });
+        } else {
+          res.status(403).json({ message: "Failed reCAPTCHA verification" });
+        }
+      } catch (error) {
+        console.log(`Server error: ${error}`);
+        res.status(500).json({ message: "Internal Server Error" });
       }
-    } catch (error) {
-      console.log(`Server error: ${error}`);
-      res.status(500).json({ message: "Internal Server Error" });
     }
-  });
+  );
 
   app.post(
     "/quote-form",
     multerMiddleware,
     csrfProtection,
+    quoteFormLimiter,
     async (req, res) => {
       const {
         name,
