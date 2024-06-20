@@ -12,7 +12,10 @@ import cookieParser from "cookie-parser";
 import { fileURLToPath } from "url";
 import path from "path";
 import dotenv from "dotenv";
-import { sendSubscriptionEmail } from "./scripts/sendEmail.js";
+import {
+  sendUserEmail,
+  sendOwnerEmailNotification,
+} from "./scripts/sendEmail.js";
 
 import {
   contactFormLimiter,
@@ -68,6 +71,17 @@ export function appMiddleware(app) {
         const recaptchaData = await verifyRecaptcha(recaptchaResponse);
         if (recaptchaData.success && recaptchaData.score > 0.5) {
           const saveResult = await saveContactForm({ name, email, message });
+
+          setTimeout(async () => {
+            await sendUserEmail(
+              email,
+              "Contact Form Submission",
+              `Hello ${name}, \n\nThank you for reaching out to us! We will get back to you shortly.`
+            );
+          }, 1 * 60 * 1000);
+
+          await sendOwnerEmailNotification("Contact");
+
           res.json({
             message: "Contact saved successfully",
             id: saveResult.id,
@@ -89,16 +103,21 @@ export function appMiddleware(app) {
     subscriptionFormLimiter,
     async (req, res) => {
       const { recaptchaResponse, name, email } = req.body;
+      console.log(req.body);
       try {
         const recaptchaData = await verifyRecaptcha(recaptchaResponse);
         if (recaptchaData.success && recaptchaData.score > 0.5) {
           const saveResult = await saveSubscriptionForm({ name, email });
 
-          await sendSubscriptionEmail(
-            email,
-            "Subscription Confirmation",
-            `Hello ${name}, \n\nThank you for subscribing to our newsletter!`
-          );
+          setTimeout(async () => {
+            await sendUserEmail(
+              email,
+              "Subscription Confirmation",
+              `Hello ${name}, \n\nThank you for subscribing to our newsletter!`
+            );
+          }, 15 * 60 * 1000);
+
+          sendOwnerEmailNotification("Subscription");
 
           res.json({
             message: "Subscription saved successfully",
@@ -180,6 +199,16 @@ export function appMiddleware(app) {
           }
 
           const saveResult = await saveQuoteForm(formData);
+
+          setTimeout(async () => {
+            await sendUserEmail(
+              email,
+              "Quote Form Submission",
+              `Hello ${name}, \n\nThank you for requesting a logistics services quote for ${company}. We will get back to you with the details shortly.`
+            );
+          }, 30 * 60 * 1000);
+
+          await sendOwnerEmailNotification("Quote");
 
           res.json({
             message: "Quote saved successfully",

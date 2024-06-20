@@ -26,8 +26,18 @@ class Mailer {
     this.oauth2Client.setCredentials({ refresh_token: REFRESH_TOKEN });
   }
 
+  async getAccessToken() {
+    try {
+      const { token } = await this.oauth2Client.getAccessToken();
+      return token;
+    } catch (error) {
+      console.error("Error getting access token:", error);
+      throw new Error("Error getting access token");
+    }
+  }
+
   async createTransporter() {
-    const accessToken = await this.oauth2Client.getAccessToken();
+    const accessToken = await this.getAccessToken();
     return nodemailer.createTransport({
       service: "gmail",
       auth: {
@@ -55,7 +65,6 @@ class Mailer {
         text,
       };
       const result = await transporter.sendMail(mailOptions);
-      console.log("Email sent:", result);
       return result;
     } catch (error) {
       console.error("Error sending email:", error);
@@ -66,6 +75,12 @@ class Mailer {
 
 const mailer = new Mailer();
 
-export async function sendSubscriptionEmail(to, subject, text) {
+export async function sendUserEmail(to, subject, text) {
   return mailer.sendMail(to, subject, text);
+}
+
+export async function sendOwnerEmailNotification(formType) {
+  const subject = `New ${formType} Form Submission`;
+  const text = `A new ${formType} form has been submitted. Please check the admin dashboard for more details.`;
+  return mailer.sendMail(EMAIL_USER, subject, text);
 }
