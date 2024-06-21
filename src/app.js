@@ -32,9 +32,20 @@ const multerMiddleware = multer().none();
 const csrfProtection = csurf({ cookie: true });
 
 export function appMiddleware(app) {
+  const allowedOrigins = [
+    "https://cglwebsitetest.xyz",
+    "https://www.cglwebsitetest.xyz",
+  ];
+
   app.use(
     cors({
-      origin: "http://localhost:3000",
+      origin: (origin, callback) => {
+        if (!origin || allowedOrigins.includes(origin)) {
+          callback(null, true);
+        } else {
+          callback(new Error("Not allowed by CORS"));
+        }
+      },
       credentials: true,
     })
   );

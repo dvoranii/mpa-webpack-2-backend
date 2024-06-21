@@ -48,10 +48,6 @@ class Mailer {
         refreshToken: REFRESH_TOKEN,
         accessToken: accessToken.token,
       },
-      // For testing purposes only; ensure this is removed or set properly in production
-      tls: {
-        rejectUnauthorized: false,
-      },
     });
   }
 
