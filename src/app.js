@@ -58,7 +58,7 @@ export function appMiddleware(app) {
     res.sendFile(path.resolve(__dirname, "views", "admin.html"));
   });
 
-  app.get("/csrf-token", csrfProtection, (req, res) => {
+  app.get("/api/csrf-token", csrfProtection, (req, res) => {
     try {
       const token = req.csrfToken();
       console.log("CSRF token generated:", token);
@@ -70,7 +70,7 @@ export function appMiddleware(app) {
   });
 
   app.post(
-    "/contact-form",
+    "/api/contact-form",
     multerMiddleware,
     csrfProtection,
     contactFormLimiter,
@@ -108,7 +108,7 @@ export function appMiddleware(app) {
   );
 
   app.post(
-    "/subscribe",
+    "/api/subscribe",
     multerMiddleware,
     csrfProtection,
     subscriptionFormLimiter,
@@ -145,7 +145,7 @@ export function appMiddleware(app) {
   );
 
   app.post(
-    "/quote-form",
+    "/api/quote-form",
     multerMiddleware,
     csrfProtection,
     quoteFormLimiter,
