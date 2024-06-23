@@ -6,7 +6,6 @@ export const contactFormLimiter = rateLimit({
   max: 5,
   message: "Too many requests from this IP, please try again after 15 minutes",
   statusCode: 429,
-  trustProxy: true,
 });
 
 export const subscriptionFormLimiter = rateLimit({
@@ -14,7 +13,6 @@ export const subscriptionFormLimiter = rateLimit({
   max: 5,
   message: "Too many requests from this IP, please try again after 15 minutes",
   statusCode: 429,
-  trustProxy: true,
 });
 
 export const quoteFormLimiter = rateLimit({
@@ -22,5 +20,4 @@ export const quoteFormLimiter = rateLimit({
   max: 8,
   message: "Too many requests from this IP, please try again after 15 minutes",
   statusCode: 429,
-  trustProxy: true,
 });
