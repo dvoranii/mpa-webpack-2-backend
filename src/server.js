@@ -14,6 +14,7 @@ app.set("trust proxy", "loopback");
 const PORT = process.env.PORT || 4444;
 
 app.use(express.static(path.join(__dirname, "../public")));
+
 app.use(compression());
 
 appMiddleware(app);
