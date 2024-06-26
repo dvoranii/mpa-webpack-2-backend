@@ -1,4 +1,3 @@
 /node_modules/
-*.env
+*.env.*
 mpa-form-firebase-adminsdk-furau-0a1bb51263.json
-*.rest

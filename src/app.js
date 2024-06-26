@@ -32,10 +32,7 @@ const multerMiddleware = multer().none();
 const csrfProtection = csurf({ cookie: true });
 
 export function appMiddleware(app) {
-  const allowedOrigins = [
-    "https://cglwebsitetest.xyz",
-    "https://www.cglwebsitetest.xyz",
-  ];
+  const allowedOrigins = process.env.ALLOWED_ORIGINS.split(",");
 
   app.use(
     cors({
@@ -76,12 +73,13 @@ export function appMiddleware(app) {
     contactFormLimiter,
     async (req, res) => {
       const { recaptchaResponse, name, email, message } = req.body;
-      console.log(req.body);
 
       try {
         const recaptchaData = await verifyRecaptcha(recaptchaResponse);
         if (recaptchaData.success && recaptchaData.score > 0.5) {
           const saveResult = await saveContactForm({ name, email, message });
+
+          await sendOwnerEmailNotification("Contact");
 
           setTimeout(async () => {
             await sendUserEmail(
@@ -90,8 +88,6 @@ export function appMiddleware(app) {
               `Hello ${name}, \n\nThank you for reaching out to us! We will get back to you shortly.`
             );
           }, 1 * 60 * 1000);
-
-          await sendOwnerEmailNotification("Contact");
 
           res.json({
             message: "Contact saved successfully",
@@ -120,6 +116,8 @@ export function appMiddleware(app) {
         if (recaptchaData.success && recaptchaData.score > 0.5) {
           const saveResult = await saveSubscriptionForm({ name, email });
 
+          sendOwnerEmailNotification("Subscription");
+
           setTimeout(async () => {
             await sendUserEmail(
               email,
@@ -127,8 +125,6 @@ export function appMiddleware(app) {
               `Hello ${name}, \n\nThank you for subscribing to our newsletter!`
             );
           }, 15 * 60 * 1000);
-
-          sendOwnerEmailNotification("Subscription");
 
           res.json({
             message: "Subscription saved successfully",
@@ -211,6 +207,8 @@ export function appMiddleware(app) {
 
           const saveResult = await saveQuoteForm(formData);
 
+          await sendOwnerEmailNotification("Quote");
+
           setTimeout(async () => {
             await sendUserEmail(
               email,
@@ -218,8 +216,6 @@ export function appMiddleware(app) {
               `Hello ${name}, \n\nThank you for requesting a logistics services quote for ${company}. We will get back to you with the details shortly.`
             );
           }, 30 * 60 * 1000);
-
-          await sendOwnerEmailNotification("Quote");
 
           res.json({
             message: "Quote saved successfully",

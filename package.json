@@ -5,7 +5,8 @@
   "main": "index.js",
   "type": "module",
   "scripts": {
-    "start": "nodemon src/server.js"
+    "start:dev": "dotenv -e .env.development nodemon src/server.js",
+    "start:prod": "dotenv -e .env.production pm2 restart backend || dotenv -e .env.production pm2 start src/server.js --name backend"
   },
   "keywords": [],
   "author": "",
@@ -27,6 +28,7 @@
     "terser": "^5.31.0"
   },
   "devDependencies": {
+    "dotenv-cli": "^7.4.2",
     "nodemon": "^3.1.0"
   }
 }

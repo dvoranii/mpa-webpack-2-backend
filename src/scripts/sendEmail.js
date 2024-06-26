@@ -8,9 +8,12 @@ const {
   REFRESH_TOKEN,
   EMAIL_USER,
   OAUTH_PLAYGROUND,
+  NODE_ENV,
 } = process.env;
 
-if (!CLIENT_ID || !CLIENT_SECRET || !REFRESH_TOKEN || !EMAIL_USER) {
+if (
+  (!CLIENT_ID || !CLIENT_SECRET || !REFRESH_TOKEN || !EMAIL_USER, !NODE_ENV)
+) {
   throw new Error("Missing required environment variables");
 }
 
@@ -38,7 +41,7 @@ class Mailer {
 
   async createTransporter() {
     const accessToken = await this.getAccessToken();
-    return nodemailer.createTransport({
+    const transporterOptions = {
       service: "gmail",
       auth: {
         type: "OAuth2",
@@ -48,7 +51,12 @@ class Mailer {
         refreshToken: REFRESH_TOKEN,
         accessToken: accessToken.token,
       },
-    });
+    };
+
+    if (NODE_ENV === "development") {
+      transporterOptions.tls = { rejectUnauthorized: false };
+    }
+    return nodemailer.createTransport(transporterOptions);
   }
 
   async sendMail(to, subject, text) {
