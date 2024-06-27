@@ -5,8 +5,7 @@
   "main": "index.js",
   "type": "module",
   "scripts": {
-    "start:dev": "dotenv -e .env.development nodemon src/server.js",
-    "start:prod": "dotenv -e .env.production pm2 restart backend || dotenv -e .env.production pm2 start src/server.js --name backend"
+    "start": "nodemon src/server.js"
   },
   "keywords": [],
   "author": "",
