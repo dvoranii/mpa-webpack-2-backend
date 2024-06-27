@@ -9,8 +9,6 @@ import {
 import { verifyRecaptcha } from "./scripts/recaptcha.js";
 import csurf from "csurf";
 import cookieParser from "cookie-parser";
-import { fileURLToPath } from "url";
-import path from "path";
 import dotenv from "dotenv";
 import {
   sendUserEmail,
@@ -24,9 +22,6 @@ import {
 } from "./scripts/rateLimiter.js";
 
 dotenv.config();
-
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
 
 const multerMiddleware = multer().none();
 const csrfProtection = csurf({ cookie: true });
@@ -50,10 +45,6 @@ export function appMiddleware(app) {
   app.use(cookieParser());
   app.use(bodyParser.json());
   app.use(bodyParser.urlencoded({ extended: true }));
-
-  app.use("/admin", (req, res) => {
-    res.sendFile(path.resolve(__dirname, "views", "admin.html"));
-  });
 
   app.get("/api/csrf-token", csrfProtection, (req, res) => {
     try {
